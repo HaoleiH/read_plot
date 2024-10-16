@@ -9,6 +9,7 @@ from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as Navigatio
 import csv
 from matplotlib import rcParams
 from cycler import cycler
+import re
 # formatting the plots
 def setup(ax):
     ax.xaxis.set_minor_locator(matplotlib.ticker.AutoMinorLocator(2))
@@ -132,11 +133,20 @@ class DataPlotter(QMainWindow):
             self.path_label.setText("; ".join(filepaths))
             try:
                 for filepath in filepaths:
+                    num_header_lines = 0
                     with open(filepath, 'r') as f:
                         sniffer = csv.Sniffer()
-                        dialect = sniffer.sniff(f.read(1024))  # Analyze the first 1024 bytes
+                        dialect = sniffer.sniff(f.read(1024))# Analyze the first 1024 bytes
+                        f.seek(0)  
+                        for line in f:
+                            if re.search('[A-Za-z]{2,}', line):
+                                # count the header here
+                                num_header_lines += 1
+                            else:
+                                break
+
                     data = pd.read_csv(
-                        filepath, names=["x", "y"], skiprows=1, delimiter=dialect.delimiter
+                        filepath, names=["x", "y"], skiprows=num_header_lines, delimiter=dialect.delimiter
                     )
                     self.data_list.append(data)
 
