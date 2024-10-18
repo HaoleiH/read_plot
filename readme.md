@@ -1,5 +1,9 @@
 # Read data files and plot them
-this project is created with the help of ChatGPT and Gemini.
+
+**[Try this.](https://haoleih.github.io/HaoleiHui/readplot/read_plot.html)**
+
+
+This project is created with the help of ChatGPT and Gemini.
 
 The motivation  of this project is that I want to find a way to convinently plot the data obtained from different measurements, without putting it in excel or origin. The program should have folowing features:
 
