@@ -53,7 +53,7 @@
 
         <label for="plotType">Select Plot Type:</label>
         <select id="plotType">
-            <option value="lines+markers">Line (default)</option>
+            <option value="lines">Line (default)</option>
             <option value="markers">Scatter</option>
             <option value="bar">Bar</option>
         </select>
@@ -203,7 +203,11 @@
                 y: yValues, // Y-axis values
                 mode: plotType === 'bar' ? undefined : plotType, // For bar charts, we don't use mode
                 type: plotType === 'bar' ? 'bar' : undefined, // If bar chart, set type to 'bar'
-                name: `${columnNames[xIndex]} vs ${columnNames[yIndex]}` // Name of the trace for the legend
+                name: `${columnNames[xIndex]} vs ${columnNames[yIndex]}`, // Name of the trace for the legend
+                line: {
+                    //color: 'rgb(219, 64, 82)',
+                    width: 3
+                    }
             };
 
             traces.push(trace); // Add the new trace to the traces array
