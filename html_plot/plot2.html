@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plot Data from Local File with Plotly</title>
+    <!-- Plotly.js library -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <h1>Upload and Plot Data</h1>
+
+    <!-- File input for the user to select a file -->
+    <input type="file" id="fileInput" accept=".csv" />
+
+    <!-- Div where the plot will be rendered -->
+    <div id="plot"></div>
+
+    <script>
+        // Listen for file input change event
+        document.getElementById('fileInput').addEventListener('change', function(event) {
+            const file = event.target.files[0]; // Get the selected file
+            if (file) {
+                const reader = new FileReader(); // Create a FileReader to read the file
+
+                // Define what happens when the file is successfully read
+                reader.onload = function(e) {
+                    const text = e.target.result; // Get the file content as text
+                    const data = parseCSV(text); // Parse the CSV data
+                    
+                    // Extract labels and values from the parsed data
+                    const labels = data.map(row => row[0]); // Assuming the first column is for labels
+                    const values = data.map(row => parseFloat(row[1])); // Assuming the second column is for values
+
+                    // Call the function to plot the data with Plotly
+                    plotData(labels, values);
+                };
+
+                // Read the file as text
+                reader.readAsText(file);
+            }
+        });
+
+        // Function to parse CSV data
+        function parseCSV(text) {
+            const rows = text.split('\n'); // Split the text into rows
+            return rows.map(row => row.split(' ')); // Split each row into columns (assuming comma-separated values)
+        }
+
+        // Function to plot the data using Plotly
+        function plotData(labels, values) {
+            const trace = {
+                x: labels, // X-axis labels
+                y: values, // Y-axis values
+                type: 'bar' // You can change this to 'scatter', 'line', etc.
+            };
+
+            const data = [trace];
+
+            const layout = {
+                title: 'Sample Data Plot',
+                xaxis: { title: 'Categories' },
+                yaxis: { title: 'Values' }
+            };
+
+            // Plot the data inside the 'plot' div
+            Plotly.newPlot('plot', data, layout);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plot Data from Local File with Plotly</title>
+    <!-- Plotly.js library -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        /* Center the plot */
+        #plotContainer {
+            display: flex;
+            justify-content: center; /* Horizontally centers the plot */
+            align-items: center; /* Vertically centers the plot */
+            margin-top: 20px; /* Add some margin on top */
+        }
+
+        #plot {
+            width: 80%; /* Set the plot width as a percentage of the container */
+            max-width: 800px; /* Set a maximum width */
+            height: 500px; /* Set a fixed height */
+        }
+
+        .axis-range, .axis-title, .legend-position {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Upload and Plot Data</h1>
+
+    <!-- File input for the user to select a file -->
+    <input type="file" id="fileInput" accept=".csv,.txt" />
+
+    <!-- Dropdowns to select columns for X and Y axes and plot type -->
+    <div id="columnSelectors" style="display:none;">
+        <label for="xColumn">Select X Column:</label>
+        <select id="xColumn"></select>
+
+        <label for="yColumn">Select Y Column:</label>
+        <select id="yColumn"></select>
+
+        <label for="plotType">Select Plot Type:</label>
+        <select id="plotType">
+            <option value="lines+markers">Line (default)</option>
+            <option value="markers">Scatter</option>
+            <option value="bar">Bar</option>
+        </select>
+
+        <!-- Button to add the plot -->
+        <button id="addPlotButton">Add Plot</button>
+
+        <!-- Inputs for X and Y axis ranges (in a new line) -->
+        <div class="axis-range">
+            <label for="xMin">X-axis Min:</label>
+            <input type="number" id="xMin" placeholder="Auto">
+
+            <label for="xMax">X-axis Max:</label>
+            <input type="number" id="xMax" placeholder="Auto">
+
+            <label for="yMin">Y-axis Min:</label>
+            <input type="number" id="yMin" placeholder="Auto">
+
+            <label for="yMax">Y-axis Max:</label>
+            <input type="number" id="yMax" placeholder="Auto">
+        </div>
+
+        <!-- Inputs for X and Y axis titles -->
+        <div class="axis-title">
+            <label for="xAxisTitle">X Axis Title:</label>
+            <input type="text" id="xAxisTitle" placeholder="X Axis">
+
+            <label for="yAxisTitle">Y Axis Title:</label>
+            <input type="text" id="yAxisTitle" placeholder="Y Axis">
+        </div>
+
+        <!-- Inputs for Legend Position -->
+        <div class="legend-position">
+            <label for="legendX">Legend Position X:</label>
+            <input type="number" id="legendX" value="0.8" step="0.01">
+
+            <label for="legendY">Legend Position Y:</label>
+            <input type="number" id="legendY" value="0.9" step="0.01">
+        </div>
+    </div>
+
+    <!-- Container for the plot -->
+    <div id="plotContainer">
+        <!-- Div where the plot will be rendered -->
+        <div id="plot"></div>
+    </div>
+
+    <script>
+        let parsedData = []; // To store parsed CSV data
+        let columnNames = []; // To store detected column names
+        let traces = []; // To store plotly traces
+
+        // Listen for file input change event
+        document.getElementById('fileInput').addEventListener('change', function(event) {
+            const file = event.target.files[0]; // Get the selected file
+            if (file) {
+                const reader = new FileReader(); // Create a FileReader to read the file
+
+                // Define what happens when the file is successfully read
+                reader.onload = function(e) {
+                    const text = e.target.result; // Get the file content as text
+                    const separator = detectSeparator(text); // Detect the separator
+                    parsedData = parseCSV(text, separator); // Parse the CSV data with the detected separator
+
+                    columnNames = parsedData[0]; // Assume first row contains column headers
+                    populateDropdowns(columnNames); // Populate the dropdown menus with column names
+
+                    document.getElementById('columnSelectors').style.display = 'block'; // Show dropdowns
+                };
+
+                // Read the file as text
+                reader.readAsText(file);
+            }
+        });
+
+        // Function to detect the separator in the text
+        function detectSeparator(text) {
+            const potentialSeparators = [',', ';', '\t', '|', ' ']; // Common separators
+            const firstLine = text.split('\n')[0]; // Get the first line of the file
+            let bestSeparator = ',';
+            let maxCount = 0;
+
+            // Check which separator appears most often in the first line
+            potentialSeparators.forEach(separator => {
+                const count = firstLine.split(separator).length;
+                if (count > maxCount) {
+                    maxCount = count;
+                    bestSeparator = separator;
+                }
+            });
+
+            return bestSeparator;
+        }
+
+        // Function to parse CSV data using the detected separator
+        function parseCSV(text, separator) {
+            const rows = text.split('\n'); // Split the text into rows
+            return rows.map(row => row.split(separator)); // Split each row into columns using the detected separator
+        }
+
+        // Function to populate dropdown menus with column names
+        function populateDropdowns(columns) {
+            const xDropdown = document.getElementById('xColumn');
+            const yDropdown = document.getElementById('yColumn');
+
+            // Clear existing options
+            xDropdown.innerHTML = '';
+            yDropdown.innerHTML = '';
+
+            // Populate the dropdowns with column names
+            columns.forEach((col, index) => {
+                const optionX = document.createElement('option');
+                optionX.value = index;
+                optionX.text = col;
+                xDropdown.appendChild(optionX);
+
+                const optionY = document.createElement('option');
+                optionY.value = index;
+                optionY.text = col;
+                yDropdown.appendChild(optionY);
+            });
+        }
+
+        // Event listener for the "Add Plot" button
+        document.getElementById('addPlotButton').addEventListener('click', function() {
+            const xIndex = document.getElementById('xColumn').value; // Get selected X column index
+            const yIndex = document.getElementById('yColumn').value; // Get selected Y column index
+            const plotType = document.getElementById('plotType').value; // Get selected plot type
+
+            // Extract selected columns' data
+            const xValues = parsedData.slice(1).map(row => row[xIndex]); // Skip the header row
+            const yValues = parsedData.slice(1).map(row => parseFloat(row[yIndex])); // Convert Y values to numbers
+
+            // Add a new trace for this X and Y selection
+            const trace = {
+                x: xValues, // X-axis values
+                y: yValues, // Y-axis values
+                mode: plotType === 'bar' ? undefined : plotType, // For bar charts, we don't use mode
+                type: plotType === 'bar' ? 'bar' : undefined, // If bar chart, set type to 'bar'
+                name: `${columnNames[xIndex]} vs ${columnNames[yIndex]}` // Name of the trace for the legend
+            };
+
+            traces.push(trace); // Add the new trace to the traces array
+
+            // Get axis titles and legend positions from input fields
+            const xAxisTitle = document.getElementById('xAxisTitle').value || 'X Axis'; // Default to 'X Axis'
+            const yAxisTitle = document.getElementById('yAxisTitle').value || 'Y Axis'; // Default to 'Y Axis'
+            const legendX = parseFloat(document.getElementById('legendX').value) || 0.8; // Default to 0.8
+            const legendY = parseFloat(document.getElementById('legendY').value) || 0.9; // Default to 0.9
+
+            // Call the function to plot the data with Plotly
+            plotData(traces, xAxisTitle, yAxisTitle, legendX, legendY);
+        });
+
+        // Function to plot the data using Plotly, with optional axis ranges
+        function plotData(traces, xAxisTitle, yAxisTitle, legendX, legendY) {
+            // Get custom axis range values from input fields (or leave as undefined for auto range)
+            const xMin = document.getElementById('xMin').value || null;
+            const xMax = document.getElementById('xMax').value || null;
+            const yMin = document.getElementById('yMin').value || null;
+            const yMax = document.getElementById('yMax').value || null;
+
+            const layout = {
+                title: 'Custom Data Plot',
+                xaxis: {
+                    title: xAxisTitle, // Set the X-axis title
+                    range: xMin && xMax ? [xMin, xMax] : undefined // Set custom range if both values are provided
+                },
+                yaxis: {
+                    title: yAxisTitle, // Set the Y-axis title
+                    range: yMin && yMax ? [yMin, yMax] : undefined // Set custom range if both values are provided
+                },
+                showlegend: true,
+                legend: {
+                    x: legendX, // Set the X position of the legend
+                    y: legendY, // Set the Y position of the legend
+                    xanchor: 'right', // Align the legend with respect to the X position
+                    yanchor: 'top' // Align the legend with respect to the Y position
+                }
+            };
+
+            // Plot the data inside the 'plot' div with all traces
+            Plotly.newPlot('plot', traces, layout);
+        }
+    </script>
+</body>
+</html>

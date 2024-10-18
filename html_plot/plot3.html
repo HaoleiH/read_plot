@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plot Data from Local File with Plotly</title>
+    <!-- Plotly.js library -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <h1>Upload and Plot Data</h1>
+
+    <!-- File input for the user to select a file -->
+    <input type="file" id="fileInput" accept=".csv,.txt" />
+
+    <!-- Div where the plot will be rendered -->
+    <div id="plot"></div>
+
+    <script>
+        // Listen for file input change event
+        document.getElementById('fileInput').addEventListener('change', function(event) {
+            const file = event.target.files[0]; // Get the selected file
+            if (file) {
+                const reader = new FileReader(); // Create a FileReader to read the file
+
+                // Define what happens when the file is successfully read
+                reader.onload = function(e) {
+                    const text = e.target.result; // Get the file content as text
+                    
+                    const separator = detectSeparator(text); // Detect the separator
+                    const data = parseCSV(text, separator); // Parse the CSV data with the detected separator
+                    
+                    // Extract labels and values from the parsed data
+                    const labels = data.map(row => row[0]); // Assuming the first column is for labels
+                    const values = data.map(row => parseFloat(row[1])); // Assuming the second column is for values
+
+                    // Call the function to plot the data with Plotly
+                    plotData(labels, values);
+                };
+
+                // Read the file as text
+                reader.readAsText(file);
+            }
+        });
+
+        // Function to detect the separator in the text
+        function detectSeparator(text) {
+            const potentialSeparators = [',', ';', '\t', '|', ' ']; // Common separators
+            const firstLine = text.split('\n')[0]; // Get the first line of the file
+            let bestSeparator = ',';
+            let maxCount = 0;
+
+            // Check which separator appears most often in the first line
+            potentialSeparators.forEach(separator => {
+                const count = firstLine.split(separator).length;
+                if (count > maxCount) {
+                    maxCount = count;
+                    bestSeparator = separator;
+                }
+            });
+
+            return bestSeparator;
+        }
+
+        // Function to parse CSV data using the detected separator
+        function parseCSV(text, separator) {
+            const rows = text.split('\n'); // Split the text into rows
+            return rows.map(row => row.split(separator)); // Split each row into columns using the detected separator
+        }
+
+        // Function to plot the data using Plotly
+        function plotData(labels, values) {
+            const trace = {
+                x: labels, // X-axis labels
+                y: values, // Y-axis values
+                //type: 'line', // You can change this to 'scatter', 'line', etc.
+                mode: 'lines+markers',
+                line: {
+                    color: 'blue',
+                    width: 3
+                },
+                marker: {
+                    color: 'red',
+                    size: 8
+                },
+                name: "Sample Data"
+            };
+
+            const data = [trace];
+
+            const layout = {
+                title: 'Sample Data Plot',
+                legend:{x:0.8,y:0.96, traceorder:'normal',font:{family:'sans-serif',size:18}},
+                xaxis: { 
+                    title: 'Wavelength (nm)',
+                    showgrid: false, 
+                    linecolor: 'black',
+                    linewidth: 3,
+                    mirror: true,
+                    ticks:'inside',
+                    tickcolor:'black',
+                    tickwidth:3,
+                    tickfont:{size:28}
+                },
+                yaxis: { 
+                    title: 'Intensity (arb. unit)',
+                    showgrid: false,
+                    linecolor: 'black',
+                    linewidth: 3,
+                    mirror: true,
+                    ticks:'inside',
+                    tickcolor:'black',
+                    tickwidth:3,
+                    tickfont:{size:28},
+                    zeroline:false
+                },
+                showlegend: true,
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                width: 900,
+                height: 900,
+            };
+
+            // Plot the data inside the 'plot' div
+            Plotly.newPlot('plot', data, layout);
+        }
+    </script>
+</body>
+</html>
