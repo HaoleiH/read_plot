@@ -27,7 +27,7 @@
     </style>
 </head>
 <body>
-    <h1>Upload and Plot Data</h1>
+    <h1>Read and Plot Data, by Haolei Hui</h1>
 
     <!-- File input for the user to select a file -->
     <input type="file" id="fileInput" accept=".csv,.txt" />
@@ -59,7 +59,7 @@
 
         <label for="plotType">Select Plot Type:</label>
         <select id="plotType">
-            <option value="lines+markers">Line (default)</option>
+            <option value="lines">Line (default)</option>
             <option value="markers">Scatter</option>
             <option value="bar">Bar</option>
         </select>
@@ -94,7 +94,7 @@
         <!-- Inputs for Legend Position -->
         <div class="legend-position">
             <label for="legendX">Legend Position X:</label>
-            <input type="number" id="legendX" value="0.8" step="0.01">
+            <input type="number" id="legendX" value="0.9" step="0.01">
 
             <label for="legendY">Legend Position Y:</label>
             <input type="number" id="legendY" value="0.9" step="0.01">
@@ -228,22 +228,48 @@
             const yMax = document.getElementById('yMax').value || null;
 
             const layout = {
-                title: 'Custom Data Plot',
+                //title: 'Custom Data Plot',
                 xaxis: {
-                    title: xAxisTitle, // Set the X-axis title
-                    range: xMin && xMax ? [xMin, xMax] : undefined // Set custom range if both values are provided
+                    title:{text: xAxisTitle,font: {family: 'Arial, sans-serif',size: 24,color: 'black'}},
+                    range: xMin && xMax ? [xMin, xMax] : undefined, // Set custom range if both values are provided
+                    showgrid: false, 
+                    linecolor: 'black',
+                    linewidth: 3,
+                    mirror: true,
+                    ticks:'inside',
+                    tickcolor:'black',
+                    tickwidth:3,
+                    tickfont:{size:18},
+                    minor:{ntick:2,ticks:'inside',tickwidth:2,tickmode:'auto'},
+                    zeroline:false
                 },
                 yaxis: {
-                    title: yAxisTitle, // Set the Y-axis title
-                    range: yMin && yMax ? [yMin, yMax] : undefined // Set custom range if both values are provided
+                    title:{text: yAxisTitle,font: {family: 'Arial, sans-serif',size: 24,color: 'black'}},
+                    showgrid: false, 
+                    range: yMin && yMax ? [yMin, yMax] : undefined, // Set custom range if both values are provided
+                    showgrid: false, 
+                    linecolor: 'black',
+                    linewidth: 3,
+                    mirror: true,
+                    ticks:'inside',
+                    tickcolor:'black',
+                    tickwidth:3,
+                    tickfont:{size:18},
+                    minor:{ntick:2,ticks:'inside',tickwidth:2,tickmode:'auto'},
+                    zeroline:false
                 },
                 showlegend: true,
                 legend: {
                     x: legendX, // Set the X position of the legend
                     y: legendY, // Set the Y position of the legend
                     xanchor: 'right', // Align the legend with respect to the X position
-                    yanchor: 'top' // Align the legend with respect to the Y position
-                }
+                    yanchor: 'top', // Align the legend with respect to the Y position
+                    traceorder:'normal',font:{family:'sans-serif',size:18}
+                },
+                paper_bgcolor:'rgba(0,0,0,0)',
+                plot_bgcolor:'rgba(0,0,0,0)',
+                width: 1000,
+                height: 800
             };
 
             // Plot the data inside the 'plot' div with all traces
